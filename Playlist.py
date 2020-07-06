@@ -35,6 +35,7 @@ class Playlist:
     def __init__(self, playlist_id):
         self.id = playlist_id
         self.playlist_track_ids = []
+        self.playlist_artists = {}
         self.playlist_df = None
 
     def load_playlist_tracks(self, sp):
@@ -79,6 +80,25 @@ class Playlist:
         return file
 
 
+    def get_max_artist_popularity(self, sp, artists):
+        """
+        Returns maximum artist popularity of track
+        :param sp: Spotify connection
+        :param artists: Artists information from track
+        :return: Maximum popularity of artists
+        """
+        artist_ids = []
+        for artist in artists:
+            artist_ids.append(artist['id'])
+
+        artist_info = sp.artists(artist_ids)['artists']
+        popularities = []
+        for artist in artist_info:
+            popularities.append(artist['popularity'])
+
+        max_popularity = np.array(popularities).max()
+        return max_popularity
+
     def load_playlist_df(self, sp):
         """
         Populates a df with information about the playlist tracks
@@ -92,7 +112,10 @@ class Playlist:
             tracks_info = sp.tracks(self.playlist_track_ids[i: i + 50])['tracks']
             tracks_features = sp.audio_features(self.playlist_track_ids[i:i+50])
             for k, track in enumerate(tracks_info):
+                print(i + k)
                 if track:
+                    artists = track['artists']
+
                     playlist_track_features.append({
                         'id': track['id'],
                         'name': track['name'],
@@ -109,7 +132,8 @@ class Playlist:
                         'loudness': tracks_features[k]['loudness'],
                         'speechiness': tracks_features[k]['speechiness'],
                         'valence': tracks_features[k]['valence'],
-                        'tempo': tracks_features[k]['tempo']
+                        'tempo': tracks_features[k]['tempo'],
+                        'artist_popularity': self.get_max_artist_popularity(sp, artists)
                     })
 
         self.playlist_df = pd.DataFrame(playlist_track_features)
