@@ -91,13 +91,16 @@ class Playlist:
         for artist in artists:
             artist_ids.append(artist['id'])
 
-        artist_info = sp.artists(artist_ids)['artists']
-        popularities = []
-        for artist in artist_info:
-            popularities.append(artist['popularity'])
+        try:
+            artist_info = sp.artists(artist_ids)['artists']
+            popularities = []
+            for artist in artist_info:
+                popularities.append(artist['popularity'])
 
-        max_popularity = np.array(popularities).max()
-        return max_popularity
+            max_popularity = np.array(popularities).max()
+            return max_popularity
+        except:
+            return None
 
     def load_playlist_df(self, sp):
         """
@@ -109,32 +112,37 @@ class Playlist:
         playlist_track_features = []
 
         for i in range(0, len(self.playlist_track_ids), 50):
-            tracks_info = sp.tracks(self.playlist_track_ids[i: i + 50])['tracks']
-            tracks_features = sp.audio_features(self.playlist_track_ids[i:i+50])
-            for k, track in enumerate(tracks_info):
-                print(i + k)
-                if track:
-                    artists = track['artists']
+            try:
+                tracks_info = sp.tracks(self.playlist_track_ids[i: i + 50])['tracks']
+                tracks_features = sp.audio_features(self.playlist_track_ids[i:i+50])
+                for k, track in enumerate(tracks_info):
+                    print(i + k)
+                    if track:
+                        artists = track['artists']
 
-                    playlist_track_features.append({
-                        'id': track['id'],
-                        'name': track['name'],
-                        'popularity': track['popularity'],
-                        'duration': track['duration_ms'],
-                        'key': tracks_features[k]['key'],
-                        'mode': tracks_features[k]['mode'],
-                        'time_signature': tracks_features[k]['time_signature'],
-                        'acousticness': tracks_features[k]['acousticness'],
-                        'danceability': tracks_features[k]['danceability'],
-                        'energy': tracks_features[k]['energy'],
-                        'instrumentalness': tracks_features[k]['instrumentalness'],
-                        'liveness': tracks_features[k]['liveness'],
-                        'loudness': tracks_features[k]['loudness'],
-                        'speechiness': tracks_features[k]['speechiness'],
-                        'valence': tracks_features[k]['valence'],
-                        'tempo': tracks_features[k]['tempo'],
-                        'artist_popularity': self.get_max_artist_popularity(sp, artists)
-                    })
+                        playlist_track_features.append({
+                            'id': track['id'],
+                            'name': track['name'],
+                            'popularity': track['popularity'],
+                            'duration': track['duration_ms'],
+                            'key': tracks_features[k]['key'],
+                            'mode': tracks_features[k]['mode'],
+                            'time_signature': tracks_features[k]['time_signature'],
+                            'acousticness': tracks_features[k]['acousticness'],
+                            'danceability': tracks_features[k]['danceability'],
+                            'energy': tracks_features[k]['energy'],
+                            'instrumentalness': tracks_features[k]['instrumentalness'],
+                            'liveness': tracks_features[k]['liveness'],
+                            'loudness': tracks_features[k]['loudness'],
+                            'speechiness': tracks_features[k]['speechiness'],
+                            'valence': tracks_features[k]['valence'],
+                            'tempo': tracks_features[k]['tempo'],
+                            'artist_popularity': self.get_max_artist_popularity(sp, artists),
+                            'release_date': track['album']['release_date'],
+                            'explicit': track['explicit']
+                        })
+            except:
+                pass
 
         self.playlist_df = pd.DataFrame(playlist_track_features)
         print(f"Done.")
@@ -147,3 +155,6 @@ class Playlist:
         :return: DataFrame with information on playlist tracks
         """
         return self.playlist_df[cols] if cols else self.playlist_df
+
+    def drop_missing_data(self):
+        self.playlist_df = self.playlist_df.dropna()

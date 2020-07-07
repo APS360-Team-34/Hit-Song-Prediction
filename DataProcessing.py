@@ -40,14 +40,30 @@ class DataInformation:
         return DataInformation.Feature.list() + [DataInformation.TARGET]
 
 
+    class NormalizationType(Enum):
+        """
+        Types of normalization that can be performed
+        """
+        DEFAULT = 0
+        STD_CLAMP = 1
+
+    normalization = {
+        Feature.DURATION : NormalizationType.STD_CLAMP
+    }
+
+
+
+
+
+
 class SpotifyTracksDataset(Dataset):
     """
     Dataset of Spotify Songs and their features
     """
-    def __init__(self, df):
+    def __init__(self, df, features, target):
         self.df = df
-        self.features = DataInformation.Feature.list()
-        self.target = DataInformation.TARGET
+        self.features = features
+        self.target = target
 
     def __getitem__(self, index):
         if isinstance(index, slice):
@@ -71,6 +87,38 @@ class SpotifyTracksDataset(Dataset):
     def getitem(self, index):
         return self.df[self.features].iloc[index]
 
+
+
+def normalize_data(data, data_min=None, data_max=None):
+    """
+    Normalize the data
+    :param data: Data to normalize
+    :param data_min: The minimum possible value of data
+    :param data_max: The maximum possible value of data
+    :return: Normalized data
+    """
+    if data_min is None:
+        data_min = data.min()
+    if data_max is None:
+        data_max = data.max()
+    return (data - data_min) / (data_max - data_min)
+
+def normalize_data_by_type(data, normalization_type):
+    """
+    Normalize the data using the given type of normalization
+    :param data: The data to normalize
+    :param normalization_type: The type of normalization to use (DataInformation.NormalizationType)
+    :return: Normalized data
+    """
+    if normalization_type == DataInformation.NormalizationType.STD_CLAMP:
+        min_data = data.mean() - data.std()
+        max_data = data.mean() + data.std()
+        data = data.clip(lower=min_data, upper=max_data)
+    else:
+        min_data = data.min()
+        max_data = data.max()
+
+    return normalize_data(data, data_min=min_data, data_max=max_data)
 
 def normalize_dataframe(df, cols_to_normalize):
     """
