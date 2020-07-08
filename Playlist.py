@@ -55,6 +55,11 @@ class Playlist:
                     self.playlist_track_ids.append(track['id'])
             results = sp.next(results)
 
+        for i in results['items']:
+            track = i['track']
+            if track['id']:
+                self.playlist_track_ids.append(track['id'])
+
         print(f"Done.")
 
         return self.playlist_track_ids
@@ -102,6 +107,29 @@ class Playlist:
         except:
             return None
 
+    def get_artists_top_tracks_avg_popularity(self, sp, artists):
+        """
+        Returns maximum artist popularity of track
+        :param sp: Spotify connection
+        :param artists: Artists information from track
+        :return: Maximum popularity of artists
+        """
+        artist_ids = []
+        for artist in artists:
+            artist_ids.append(artist['id'])
+
+        try:
+            popularities = []
+            for artist in artist_ids:
+                top_tracks = sp.artist_top_tracks(artist, country='US')
+                for track in top_tracks['tracks']:
+                    popularities.append(track['popularity'])
+
+            avg_popularity = np.array(popularities).mean()
+            return avg_popularity
+        except:
+            return None
+
     def load_playlist_df(self, sp):
         """
         Populates a df with information about the playlist tracks
@@ -137,7 +165,8 @@ class Playlist:
                             'speechiness': tracks_features[k]['speechiness'],
                             'valence': tracks_features[k]['valence'],
                             'tempo': tracks_features[k]['tempo'],
-                            'artist_popularity': self.get_max_artist_popularity(sp, artists),
+                            'max_artist_popularity': self.get_max_artist_popularity(sp, artists),
+                            'avg_popularity_artist_top_tracks': self.get_artists_top_tracks_avg_popularity(sp, artists),
                             'release_date': track['album']['release_date'],
                             'explicit': track['explicit']
                         })
@@ -158,3 +187,80 @@ class Playlist:
 
     def drop_missing_data(self):
         self.playlist_df = self.playlist_df.dropna()
+
+
+    # def load_all_playlist_info_from_spotify(self, sp):
+    #     print(f"Loading playlist {self.id} information from Spotify...")
+    #     playlist_information = []
+    #     artist_top_track_ids = []
+    #     artist_top_tracks = []
+    #
+    #     ''' Songs in playlist '''
+    #     for i in range(0, len(self.playlist_track_ids[:50]), 50):
+    #         try:
+    #             tracks_info = sp.tracks(self.playlist_track_ids[i: i + 50])['tracks']
+    #             tracks_features = sp.audio_features(self.playlist_track_ids[i:i + 50])
+    #             for k, track in enumerate(tracks_info):
+    #                 print(i + k)
+    #                 if track:
+    #                     artists = track['artists']
+    #                     artist_ids = []
+    #                     for artist in artists:
+    #                         artist_ids.append(artist['id'])
+    #                     try:
+    #                         artist_info = sp.artists(artist_ids)['artists']
+    #                     except:
+    #                         artist_info = None
+    #
+    #
+    #                     for artist in artist_ids:
+    #                         try:
+    #                             top_tracks = sp.artist_top_tracks(artist, country='US')['tracks']
+    #                             for top_track in top_tracks:
+    #                                 artist_top_track_ids.append(top_track['id'])
+    #                         except:
+    #                             pass
+    #
+    #                     playlist_information.append({
+    #                         'id': track['id'],
+    #                         'track_info': track,
+    #                         'track_features': tracks_features[k],
+    #                         'artists_info': artist_info
+    #                     })
+    #         except:
+    #             pass
+    #
+    #     artist_top_track_ids = list(set(artist_top_track_ids))
+    #     ''' Get the top songs of the artists in the playlist '''
+    #     for i in range(0, len(artist_top_track_ids), 50):
+    #         try:
+    #             tracks_info = sp.tracks(self.playlist_track_ids[i: i + 50])['tracks']
+    #             tracks_features = sp.audio_features(self.playlist_track_ids[i:i + 50])
+    #             for k, track in enumerate(tracks_info):
+    #                 print(i + k)
+    #                 if track:
+    #                     artists = track['artists']
+    #                     artist_ids = []
+    #                     for artist in artists:
+    #                         artist_ids.append(artist['id'])
+    #                     try:
+    #                         artist_info = sp.artists(artist_ids)['artists']
+    #                     except:
+    #                         artist_info = None
+    #
+    #                     artist_top_tracks.append({
+    #                         'id': track['id'],
+    #                         'track_info': track,
+    #                         'track_features': tracks_features[k],
+    #                         'artists_info': artist_info
+    #                     })
+    #         except:
+    #             pass
+    #
+    #
+    #
+    #     self.playlist_information = pd.DataFrame(playlist_information)
+    #     self.artist_top_tracks = pd.DataFrame(playlist_information)
+    #     print(f"Done.")
+    #
+    #     return self.playlist_information
