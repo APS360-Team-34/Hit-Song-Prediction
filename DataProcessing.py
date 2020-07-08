@@ -4,56 +4,12 @@ import torch
 import numpy as np
 
 
-class DataInformation:
+class NormalizationType(Enum):
     """
-    Holds information about the data being used
+    Types of normalization that can be performed
     """
-
-    class Feature(Enum):
-        """
-        Track features being used in prediction
-        """
-        DURATION = 'duration'
-        KEY = 'key'
-        MODE = 'mode'
-        TIME_SIGNATURE = 'time_signature'
-        ACOUSTICNESS = 'acousticness'
-        DANCEABILITY = 'danceability'
-        ENERGY = 'energy'
-        INSTRUMENTALNESS = 'instrumentalness'
-        LIVENESS = 'liveness'
-        LOUDNESS = 'loudness'
-        SPEECHINESS = 'speechiness'
-        VALENCE = 'valence'
-        TEMPO = 'tempo'
-        ARTIST_POPULARITY = 'artist_popularity'
-
-        @staticmethod
-        def list():
-            return list(map(lambda f: f.value, DataInformation.Feature))
-
-    """ The target for the model to predict """
-    TARGET = 'popularity'
-
-    @staticmethod
-    def list():
-        return DataInformation.Feature.list() + [DataInformation.TARGET]
-
-
-    class NormalizationType(Enum):
-        """
-        Types of normalization that can be performed
-        """
-        DEFAULT = 0
-        STD_CLAMP = 1
-
-    normalization = {
-        Feature.DURATION : NormalizationType.STD_CLAMP
-    }
-
-
-
-
+    DEFAULT = 0
+    STD_CLAMP = 1
 
 
 class SpotifyTracksDataset(Dataset):
@@ -61,31 +17,19 @@ class SpotifyTracksDataset(Dataset):
     Dataset of Spotify Songs and their features
     """
     def __init__(self, df, features, target):
-        self.df = df
         self.features = features
         self.target = target
 
-    def __getitem__(self, index):
-        if isinstance(index, slice):
-            all_features = torch.FloatTensor()
-            all_labels = torch.FloatTensor()
-            for i in range(slice.start, slice.stop, slice.step):
-                features = torch.FloatTensor(self.df[self.features].iloc[index])
-                label = torch.FloatTensor(np.asarray([self.df[self.target].iloc[index]]))
-                all_features = torch.cat(all_features, features, dim=1)
-                all_labels = torch.cat(all_labels, label, dim=1)
+        self.data = torch.FloatTensor(np.asarray(df[self.features]))
+        self.targets = torch.FloatTensor(np.asarray([df[self.target]]))
 
-            return all_features, all_labels
-        else:
-            features = torch.FloatTensor(self.df[self.features].iloc[index])
-            label = torch.FloatTensor(np.asarray([self.df[self.target].iloc[index]]))
-            return features, label
+    def __getitem__(self, index):
+        features = self.data[index]
+        target = self.targets[:,index]
+        return features, target
 
     def __len__(self):
-        return self.df.shape[0]
-
-    def getitem(self, index):
-        return self.df[self.features].iloc[index]
+        return self.data.shape[0]
 
 
 
@@ -107,10 +51,10 @@ def normalize_data_by_type(data, normalization_type):
     """
     Normalize the data using the given type of normalization
     :param data: The data to normalize
-    :param normalization_type: The type of normalization to use (DataInformation.NormalizationType)
+    :param normalization_type: The type of normalization to use (NormalizationType)
     :return: Normalized data
     """
-    if normalization_type == DataInformation.NormalizationType.STD_CLAMP:
+    if normalization_type == NormalizationType.STD_CLAMP:
         min_data = data.mean() - data.std()
         max_data = data.mean() + data.std()
         data = data.clip(lower=min_data, upper=max_data)
