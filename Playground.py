@@ -31,4 +31,28 @@ playlist_id = "2sRZldX6n9oaII70OoO3zB"
 # pl = PL.load_playlist("playlist_" + playlist_id)
 # print(pl.playlist_df.columns)
 
+# pl = PL.load_playlist("playlist_" + playlist_id)
+# pl.load_all_playlist_info_from_spotify(sp)
+# PL.save_playlist(pl)
 
+# pl = PL.load_playlist("playlist_" + playlist_id)
+# pl.load_artist_to_top_tracks(sp)
+# PL.save_playlist(pl)
+
+# pl = PL.load_playlist("playlist_" + playlist_id)
+# pl.load_artist_top_tracks_information_into_df()
+# PL.save_playlist(pl)
+
+pl = PL.load_playlist("playlist_" + playlist_id)
+pl.load_artist_one_hot_genres_information_into_df()
+PL.save_playlist(pl)
+
+
+print(pl.playlist_information.columns)
+print(pl.playlist_information)
+print(pl.artist_top_tracks.columns)
+print(pl.artist_top_tracks)
+print(len(pl.artist_top_track_ids))
+print(pl.artist_to_top_tracks)
+print(pl.artist_top_track_information_df)
+print(pl.genres_df)
