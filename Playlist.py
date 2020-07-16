@@ -36,7 +36,6 @@ class Playlist:
         self.id = playlist_id
         self.playlist_track_ids = []
         self.playlist_artists = {}
-        self.playlist_df = None
 
     def load_playlist_tracks(self, sp):
         """
@@ -130,63 +129,65 @@ class Playlist:
         except:
             return None
 
-    def load_playlist_df(self, sp):
-        """
-        Populates a df with information about the playlist tracks
-        :param sp: Spotify connection
-        :return: DataFrame with information on playlist tracks
-        """
-        print(f"Loading playlist {self.id} track information into DataFrame...")
-        playlist_track_features = []
-
-        for i in range(0, len(self.playlist_track_ids), 50):
-            try:
-                tracks_info = sp.tracks(self.playlist_track_ids[i: i + 50])['tracks']
-                tracks_features = sp.audio_features(self.playlist_track_ids[i:i+50])
-                for k, track in enumerate(tracks_info):
-                    print(i + k)
-                    if track:
-                        artists = track['artists']
-
-                        playlist_track_features.append({
-                            'id': track['id'],
-                            'name': track['name'],
-                            'popularity': track['popularity'],
-                            'duration': track['duration_ms'],
-                            'key': tracks_features[k]['key'],
-                            'mode': tracks_features[k]['mode'],
-                            'time_signature': tracks_features[k]['time_signature'],
-                            'acousticness': tracks_features[k]['acousticness'],
-                            'danceability': tracks_features[k]['danceability'],
-                            'energy': tracks_features[k]['energy'],
-                            'instrumentalness': tracks_features[k]['instrumentalness'],
-                            'liveness': tracks_features[k]['liveness'],
-                            'loudness': tracks_features[k]['loudness'],
-                            'speechiness': tracks_features[k]['speechiness'],
-                            'valence': tracks_features[k]['valence'],
-                            'tempo': tracks_features[k]['tempo'],
-                            'max_artist_popularity': self.get_max_artist_popularity(sp, artists),
-                            'avg_popularity_artist_top_tracks': self.get_artists_top_tracks_avg_popularity(sp, artists),
-                            'release_date': track['album']['release_date'],
-                            'explicit': track['explicit']
-                        })
-            except:
-                pass
-
-        self.playlist_df = pd.DataFrame(playlist_track_features)
-        print(f"Done.")
-
-        return self.playlist_df
-
-    def get_playlist_df(self, cols=None):
-        """
-        Return loaded playlist dataframe
-        :return: DataFrame with information on playlist tracks
-        """
-        return self.playlist_df[cols] if cols else self.playlist_df
+    ''' Deprecated '''
+    # def load_playlist_df(self, sp):
+    #     """
+    #     Populates a df with information about the playlist tracks
+    #     :param sp: Spotify connection
+    #     :return: DataFrame with information on playlist tracks
+    #     """
+    #     print(f"Loading playlist {self.id} track information into DataFrame...")
+    #     playlist_track_features = []
+    #
+    #     for i in range(0, len(self.playlist_track_ids), 50):
+    #         try:
+    #             tracks_info = sp.tracks(self.playlist_track_ids[i: i + 50])['tracks']
+    #             tracks_features = sp.audio_features(self.playlist_track_ids[i:i+50])
+    #             for k, track in enumerate(tracks_info):
+    #                 print(i + k)
+    #                 if track:
+    #                     artists = track['artists']
+    #
+    #                     playlist_track_features.append({
+    #                         'id': track['id'],
+    #                         'name': track['name'],
+    #                         'popularity': track['popularity'],
+    #                         'duration': track['duration_ms'],
+    #                         'key': tracks_features[k]['key'],
+    #                         'mode': tracks_features[k]['mode'],
+    #                         'time_signature': tracks_features[k]['time_signature'],
+    #                         'acousticness': tracks_features[k]['acousticness'],
+    #                         'danceability': tracks_features[k]['danceability'],
+    #                         'energy': tracks_features[k]['energy'],
+    #                         'instrumentalness': tracks_features[k]['instrumentalness'],
+    #                         'liveness': tracks_features[k]['liveness'],
+    #                         'loudness': tracks_features[k]['loudness'],
+    #                         'speechiness': tracks_features[k]['speechiness'],
+    #                         'valence': tracks_features[k]['valence'],
+    #                         'tempo': tracks_features[k]['tempo'],
+    #                         'max_artist_popularity': self.get_max_artist_popularity(sp, artists),
+    #                         'avg_popularity_artist_top_tracks': self.get_artists_top_tracks_avg_popularity(sp, artists),
+    #                         'release_date': track['album']['release_date'],
+    #                         'explicit': track['explicit']
+    #                     })
+    #         except:
+    #             pass
+    #
+    #     self.playlist_df = pd.DataFrame(playlist_track_features)
+    #     print(f"Done.")
+    #
+    #     return self.playlist_df
+    #
+    # def get_playlist_df(self, cols=None):
+    #     """
+    #     Return loaded playlist dataframe
+    #     :return: DataFrame with information on playlist tracks
+    #     """
+    #     return self.playlist_df[cols] if cols else self.playlist_df
+    ''''''''''''''''''
 
     def drop_missing_data(self):
-        self.playlist_df = self.playlist_df.dropna()
+        self.playlist_information.dropna(inplace=True)
 
 
     def load_all_playlist_info_from_spotify(self, sp):
