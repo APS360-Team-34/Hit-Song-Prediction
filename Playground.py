@@ -29,31 +29,31 @@ def get_track_ids_by_artist(artist_name, artist_id):
 
 sp = get_spotify_connection()
 
-playlist_id = "4wVOVUOLCGhkwcehwpju6V"
+playlist_id = "6RccTnD3Ip0YDpUw8A8ZTa"
 
 ''' Load playlist tracks'''
-# pl = Playlist(playlist_id)
-# pl.load_playlist_tracks(sp)
-# pl.save_playlist_tracks()
-# PL.save_playlist(pl)
+pl = Playlist(playlist_id)
+pl.load_playlist_tracks(sp)
+pl.save_playlist_tracks()
+PL.save_playlist(pl)
 
 # pl = PL.load_playlist("playlist_" + playlist_id)
-# pl.load_all_playlist_info_from_spotify(sp)
-# PL.save_playlist(pl)
+pl.load_all_playlist_info_from_spotify(sp)
+PL.save_playlist(pl)
 
 # pl = PL.load_playlist("playlist_" + playlist_id)
-# pl.load_artist_to_top_tracks(sp)
-# PL.save_playlist(pl)
+pl.load_artist_to_top_tracks(sp)
+PL.save_playlist(pl)
 
 # pl = PL.load_playlist("playlist_" + playlist_id)
-# pl.load_artist_top_tracks_information_into_df()
-# PL.save_playlist(pl)
+pl.load_artist_top_tracks_information_into_df()
+PL.save_playlist(pl)
 
 # pl = PL.load_playlist("playlist_" + playlist_id)
-# pl.load_artist_one_hot_genres_information_into_df()
-# PL.save_playlist(pl)
+pl.load_artist_one_hot_genres_information_into_df()
+PL.save_playlist(pl)
 
-pl = PL.load_playlist("playlist_" + playlist_id)
+# pl = PL.load_playlist("playlist_" + playlist_id)
 pl.drop_missing_data()
 PL.save_playlist(pl)
 
